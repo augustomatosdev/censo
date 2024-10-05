@@ -1,6 +1,13 @@
 "use client";
 import React, { useState } from "react";
-import { TextField, Button } from "@mui/material";
+import {
+  TextField,
+  Button,
+  FormControl,
+  RadioGroup,
+  FormControlLabel,
+  Radio,
+} from "@mui/material";
 import { collection, addDoc } from "firebase/firestore"; // Firestore
 import { CS } from "../../../../types";
 import { db } from "@/lib/firebase";
@@ -17,6 +24,7 @@ export const Form = ({ data }: { data: CS[] }) => {
     }))
   );
   const [constraints, setConstraints] = useState<string>(""); // State for constraints (optional)
+  const [sincronization, setSincronization] = useState<string>("no");
 
   // Handler for the date input
   const handleDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -59,6 +67,7 @@ export const Form = ({ data }: { data: CS[] }) => {
           ...section,
           date,
           constraints,
+          sincronization,
         });
       }
       alert("Dados salvos com sucesso!");
@@ -82,6 +91,23 @@ export const Form = ({ data }: { data: CS[] }) => {
             onChange={handleDateChange} // Handle the date change
           />
         </div>
+      </div>
+
+      <div className="mb-4">
+        <p className="my-2 font-bold">Dados sincronizados?</p>
+        <p className="text-xs">
+          Os dados recolhidos no dia foram sincronizados com o servidor central?
+        </p>
+        <FormControl>
+          <RadioGroup
+            onChange={(e) => setSincronization(e.target.value)}
+            value={sincronization}
+            row
+          >
+            <FormControlLabel value="yes" control={<Radio />} label="Sim" />
+            <FormControlLabel value="no" control={<Radio />} label="Não" />
+          </RadioGroup>
+        </FormControl>
       </div>
 
       {/* Iterate over each section and allow the user to input data */}
