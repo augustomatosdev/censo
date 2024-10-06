@@ -68,6 +68,7 @@ export const Form = ({ data }: { data: CS[] }) => {
           date,
           constraints,
           sincronization,
+          createdAt: new Date().toISOString(),
         });
       }
       alert("Dados salvos com sucesso!");
