@@ -8,7 +8,15 @@ import {
   FormControlLabel,
   Radio,
 } from "@mui/material";
-import { collection, addDoc } from "firebase/firestore"; // Firestore
+import {
+  collection,
+  addDoc,
+  query,
+  where,
+  getDocs,
+  doc,
+  setDoc,
+} from "firebase/firestore"; // Firestore
 import { CS } from "../../../../types";
 import { db } from "@/lib/firebase";
 import { useRouter } from "next/navigation";
@@ -58,19 +66,63 @@ export const Form = ({ data }: { data: CS[] }) => {
     setConstraints(event.target.value);
   };
 
-  // Save the data to Firestore
+  // Validate form data
+  const validateForm = () => {
+    for (const section of workData) {
+      if (!section.listings || !section.interviews) {
+        alert("Por favor, preencha todos os campos obrigatórios.");
+        return false;
+      }
+    }
+    if (!date) {
+      alert("Por favor, selecione uma data.");
+      return false;
+    }
+    return true;
+  };
+
+  // Save or update the data to Firestore
   const handleSave = async () => {
+    if (!validateForm()) return;
+
     try {
       const collectionRef = collection(db, "workReports"); // Firestore collection for storing work reports
+
       for (const section of workData) {
-        await addDoc(collectionRef, {
-          ...section,
-          date,
-          constraints,
-          sincronization,
-          createdAt: new Date().toISOString(),
-        });
+        // Check if a report with the same CS_Ser_Num and date exists
+        const q = query(
+          collectionRef,
+          where("CS_Ser_Num", "==", section.CS_Ser_Num),
+          where("date", "==", date)
+        );
+        const querySnapshot = await getDocs(q);
+
+        if (!querySnapshot.empty) {
+          // If a document exists, update it
+          const docRef = querySnapshot.docs[0].ref;
+          await setDoc(
+            docRef,
+            {
+              ...section,
+              date,
+              constraints,
+              sincronization,
+              updatedAt: new Date().toISOString(), // Add an update timestamp
+            },
+            { merge: true }
+          );
+        } else {
+          // If no document exists, add a new one
+          await addDoc(collectionRef, {
+            ...section,
+            date,
+            constraints,
+            sincronization,
+            createdAt: new Date().toISOString(),
+          });
+        }
       }
+
       alert("Dados salvos com sucesso!");
       router.push("/search-as");
     } catch (error) {
