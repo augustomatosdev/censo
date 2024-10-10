@@ -16,7 +16,7 @@ async function getAllWorkReports() {
         pageToken ? `&pageToken=${pageToken}` : ""
       }`,
       {
-        next: { revalidate: 5400 }, // 1:30 hours in seconds
+        next: { revalidate: 5300 }, // 1:30 hours in seconds
       }
     );
 
